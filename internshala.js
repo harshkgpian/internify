@@ -217,7 +217,7 @@ async function scrapeInternshalaKeyword(keyword) {
     const internships = await scrapeInternshalaPage(url);
     
     // Save results to the JSON file after fetching the internships
-    await saveToJson(internships, filename);
+    // await saveToJson(internships, filename);
 
     console.log(`Finished scraping for keyword: ${keyword}`);
 
