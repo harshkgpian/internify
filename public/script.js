@@ -154,12 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners
-    keywordInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            const keyword = keywordInput.value.trim();
-            fetchDataByKeyword(keyword);
-        }
-    });
+
     
 
     // Function to refresh data
@@ -185,11 +180,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial data load
     fetchDataByKeyword('');
+    keywordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            const keyword = keywordInput.value.trim();
+            fetchDataByKeyword(keyword);
+        }
+    });
+
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
 
     // Event listeners
+    const debouncedFilter = debounce(filterAndSortData, 300);
     refreshBtn.addEventListener('click', refreshData);
-    searchInput.addEventListener('input', filterAndSortData);
-    skillsInput.addEventListener('input', filterAndSortData);
+    searchInput.addEventListener('input', debouncedFilter);
+    skillsInput.addEventListener('input', debouncedFilter);
     timeFilter.addEventListener('change', filterAndSortData);
     locationFilter.addEventListener('change', filterAndSortData);
     stipendSort.addEventListener('change', filterAndSortData);
