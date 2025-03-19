@@ -1,79 +1,70 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs'); // To read the internships.json file
-const { scrapeInternshala, scrapeInternshalaKeyword } = require('./internshala');
+const https = require('https');
+const { scrapeInternshalaKeyword } = require('./internshala');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
-// Add body parser middleware
 app.use(express.json());
 
-// Store internship data
 let internshipData = [];
 
-// Function to load internship data from internships.json
+// Function to fetch data directly from URL
 function loadInternshipsData() {
-    try {
-        const data = fs.readFileSync(path.join(__dirname, 'internships.json'), 'utf8');
+  const url = 'https://harshkgpian.github.io/internships.json';
+  https.get(url, (response) => {
+    let data = '';
+    response.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    response.on('end', () => {
+      try {
         internshipData = JSON.parse(data);
-        console.log('Internship data loaded from internships.json');
-        return internshipData;
-    } catch (error) {
-        console.error('Error reading internships.json:', error);
-        return [];
-    }
+        console.log('Internship data fetched from URL');
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+    });
+  }).on('error', (error) => {
+    console.error('Error fetching data:', error);
+  });
 }
 
 loadInternshipsData();
 
-
-// Function to refresh data by scraping
-async function refreshNewData() {
-    try {
-        internshipData = await scrapeInternshala(50, 1); // Scraping the data, can adjust parameters
-        // Save the new data to internships.json
-        fs.writeFileSync(path.join(__dirname, 'internships.json'), JSON.stringify(internshipData, null, 2));
-        console.log('Data refreshed and saved to internships.json');
-    } catch (error) {
-        console.error('Error refreshing data:', error);
-    }
-}
-
-
-
-
-
 // API endpoint to get internship data
 app.get('/api/internships', (req, res) => {
-    res.json(internshipData);
+  res.json(internshipData);
 });
 
-// API endpoint to refresh data by scraping and saving to internships.json
-app.get('/api/refresh', async (req, res) => {
-    try {
-        // Load the refreshed data from the file
-        const updatedData = loadInternshipsData();
-        res.json({ message: 'Data refreshed and loaded successfully', count: updatedData.length });
-    } catch (error) {
-        res.status(500).json({ error: 'Error refreshing data: ' + error.message });
-    }
-});
-
+// API endpoint to search and append data using a keyword
 app.get('/api/search', async (req, res) => {
-    const { keyword } = req.query;
-    try {
-        const scrapedData = await scrapeInternshalaKeyword(keyword);
-        res.json(scrapedData);
-    } catch (error) {
-        res.status(500).json({ error: 'Error searching for internships: ' + error.message });
-    }
+  const { keyword } = req.query;
+  if (!keyword) {
+    return res.status(400).json({ error: 'Keyword is required' });
+  }
+
+  try {
+    const scrapedData = await scrapeInternshalaKeyword(keyword);
+
+    // Append to internshipData avoiding duplicates using URL as unique identifier
+    const existingUrls = new Set(internshipData.map(item => item.detailsUrl));
+    const newInternships = scrapedData.filter(item => !existingUrls.has(item.detailsUrl));
+
+    internshipData = [...internshipData, ...newInternships];
+    console.log(`Appended ${newInternships.length} new internships from search`);
+    res.json(scrapedData);
+  } catch (error) {
+    res.status(500).json({ error: 'Error searching for internships: ' + error.message });
+  }
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Visit http://localhost:${PORT} to view the internship listings`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Visit http://localhost:${PORT} to view the internship listings`);
 });

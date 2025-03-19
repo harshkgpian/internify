@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             refreshBtn.disabled = true;
             refreshBtn.textContent = 'Refreshing...';
-            const response = await fetch('/api/refresh');
+            const response = await fetch('/api/internships');
             const result = await response.json();
             
             if (response.ok) {
