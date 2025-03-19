@@ -17,6 +17,5 @@
       }
     ],
     "buildCommand": "npm install",
-    "outputDirectory": ".",
-    "startCommand": "npm start"
+    "outputDirectory": "."
   }
