@@ -231,7 +231,6 @@ async function scrapeInternshalaKeyword(keyword) {
 }
 
 
-
 module.exports = { scrapeInternshala,
   scrapeInternshalaKeyword
  }
