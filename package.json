@@ -1,0 +1,12 @@
+{
+  "name": "autoapplyinternshala",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "��#\u0000 \u0000i\u0000n\u0000t\u0000e\u0000r\u0000n\u0000i\u0000f\u0000y\u0000\r\u0000 \u0000"
+}

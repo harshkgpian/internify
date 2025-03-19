@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internshala Internship Listings</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Internshala Internship Listings</h1>
+        
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by job title or company...">
+            <input type="text" id="skillsInput" placeholder="Search by skills...">
+            <input type="text" id="keywordInput" placeholder="Search by Keyword...">
+            <select id="timeFilter">
+                <option value="all">All Postings</option>
+                <option value="hours">Last Few Hours</option>
+                <option value="day">Last 24 Hours</option>
+                <option value="week">Last Week</option>
+            </select>
+            <select id="locationFilter">
+                <option value="all">All Locations</option>
+                <option value="remote">Remote/Work from Home</option>
+                <option value="onsite">On-site</option>
+            </select>
+            <select id="stipendSort">
+                <option value="none">No Stipend Sort</option>
+                <option value="high-to-low">Stipend: High to Low</option>
+                <option value="low-to-high">Stipend: Low to High</option>
+            </select>
+            <button class="refresh-btn" id="refreshBtn">Refresh Data</button>
+        </div>
+
+        <table id="internshipTable">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Location</th>
+                    <th>Duration</th>
+                    <th>Stipend</th>
+                    <th>Posted</th>
+                    <th>Skills</th>
+                    <th>Apply</th>
+                </tr>
+            </thead>
+            <tbody id="internshipTableBody">
+                <!-- Data will be populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <!-- Inputs for session and apply URL -->
+        <!-- <div class="apply-section">
+            <input type="text" id="sessionCookie" placeholder="Enter PHPSESSID cookie value" value="09haou40vigi079dn76mnqnbihapsmde">
+            <button class="apply-btn" id="autoApplyBtn">Auto Apply</button>
+        </div> -->
+
+        <!-- Result container to show login status and screenshots -->
+
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
