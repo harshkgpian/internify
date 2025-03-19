@@ -205,11 +205,10 @@ async function scrapeInternshala(pageCount = 1, maxConcurrentPages = 2) {
     throw error;
   }
 }
-
 async function scrapeInternshalaKeyword(keyword) {
   console.log('Starting enhanced Internshala scraper for keyword...', keyword);
   const filename = `internships.json`;
-  let keyEncoded = encodeURIComponent(keyword);
+  let keyEncoded = encodeURIComponent(keyword.toLowerCase());
 
   try {
     const url = `https://internshala.com/internships/keywords-${keyEncoded}`;
