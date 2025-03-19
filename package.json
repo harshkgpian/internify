@@ -8,5 +8,12 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "��#\u0000 \u0000i\u0000n\u0000t\u0000e\u0000r\u0000n\u0000i\u0000f\u0000y\u0000\r\u0000 \u0000"
+  "description": "��#\u0000 \u0000i\u0000n\u0000t\u0000e\u0000r\u0000n\u0000i\u0000f\u0000y\u0000\r\u0000 \u0000",
+  "dependencies": {
+    "axios": "^1.8.3",
+    "cheerio": "^1.0.0",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  }
 }
