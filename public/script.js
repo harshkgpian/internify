@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateTable(filteredData);
     }
     async function fetchData() {
+        await refreshData();
         try {
             tableBody.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
             const response = await fetch('/api/internships');
