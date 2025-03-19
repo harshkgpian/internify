@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeFilter = document.getElementById('timeFilter');
     const locationFilter = document.getElementById('locationFilter');
     const stipendSort = document.getElementById('stipendSort');
+    const stipendRange = document.getElementById('stipendRange');
     let allInternships = [];
 
     // Function to populate table
@@ -116,6 +117,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        const stipendRangeValue = stipendRange.value;
+        if (stipendRangeValue !== 'all') {
+            filteredData = filteredData.filter(internship => {
+                const stipendAmount = parseStipend(internship.stipend);
+                
+                if (stipendRangeValue === 'unpaid') {
+                    return stipendAmount === 0 || 
+                        internship.stipend.toLowerCase().includes('unpaid');
+                }
+                
+                const [min, max] = stipendRangeValue.split('-').map(val => {
+                    return val.endsWith('+') ? Infinity : parseInt(val);
+                });
+                
+                return stipendAmount >= min && (max === Infinity || stipendAmount <= max);
+            });
+        }
+
         populateTable(filteredData);
     }
     async function fetchData() {
@@ -208,4 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
     timeFilter.addEventListener('change', filterAndSortData);
     locationFilter.addEventListener('change', filterAndSortData);
     stipendSort.addEventListener('change', filterAndSortData);
+    stipendRange.addEventListener('change', filterAndSortData);
+
 });

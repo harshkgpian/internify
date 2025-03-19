@@ -1,118 +1,204 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f5f5f5;
-}
-
-.container {
+:root {
+    --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --secondary-gradient: linear-gradient(135deg, #0061ff 0%, #60efff 100%);
+    --accent-color: #6a11cb;
+    --text-primary: #333;
+    --text-secondary: #666;
+    --background: #f8f9fd;
+    --card-bg: #ffffff;
+    --border-radius: 10px;
+    --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  
+  .container {
     max-width: 1200px;
     margin: 0 auto;
-}
-
-h1 {
-    color: #333;
+    padding: 2rem;
+  }
+  
+  h1 {
     text-align: center;
-}
-
-.controls {
-    margin: 20px 0;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-#searchInput, #skillsInput, #keywordInput {
-    padding: 8px;
-    width: 200px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-table {
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  h1::before {
+    content: "";
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236a11cb"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+  
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  input, select {
+    padding: 0.8rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg);
+    font-size: 0.9rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  }
+  
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.15);
+  }
+  
+  .refresh-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--secondary-gradient);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 97, 255, 0.2);
+  }
+  
+  .refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 97, 255, 0.25);
+  }
+  
+  .refresh-btn:active {
+    transform: translateY(0);
+  }
+  
+  .refresh-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  table {
     width: 100%;
     border-collapse: collapse;
-    background-color: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-
-th, td {
-    padding: 12px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+  }
+  
+  thead {
+    background: var(--primary-gradient);
+    color: white;
+  }
+  
+  th {
+    padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-th {
-    background-color: #007bff;
-    color: white;
-}
-
-tr:hover {
-    background-color: #f8f9fa;
-}
-
-.refresh-btn {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.refresh-btn:hover {
-    background-color: #218838;
-}
-
-.apply-btn {
-    padding: 6px 12px;
-    background-color: #007bff;
+    font-weight: 600;
+  }
+  
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  tr:last-child td {
+    border-bottom: none;
+  }
+  
+  tr:hover {
+    background-color: rgba(106, 17, 203, 0.03);
+  }
+  
+  .apply-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary-gradient);
     color: white;
     text-decoration: none;
-    border-radius: 4px;
-    display: inline-block;
-}
-
-.apply-btn:hover {
-    background-color: #0056b3;
-}
-
-.loading {
+    border-radius: var(--border-radius);
+    font-weight: 500;
     text-align: center;
-    padding: 20px;
-    color: #666;
-}
-
-
-/* Add styles for the new input fields and the result container */
-.apply-section {
-    margin-top: 20px;
-}
-
-.apply-btn {
-    padding: 10px 15px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-.apply-btn:hover {
-    background-color: #45a049;
-}
-
-#resultContainer {
-    margin-top: 20px;
-}
-
-#resultContainer img {
-    margin-top: 10px;
-    max-width: 100%;
-}
+    transition: var(--transition);
+    box-shadow: 0 4px 10px rgba(106, 17, 203, 0.2);
+  }
+  
+  .apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(106, 17, 203, 0.25);
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  
+  /* Responsive design */
+  @media screen and (max-width: 1024px) {
+    .controls {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+  }
+  
+  @media screen and (max-width: 768px) {
+    table {
+      display: block;
+      overflow-x: auto;
+    }
+    
+    .controls {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .controls {
+      grid-template-columns: 1fr;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+  }
+  
+  /* Animation effects */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  tbody tr {
+    animation: fadeIn 0.3s ease-out forwards;
+    animation-delay: calc(var(--row-index, 0) * 0.05s);
+    opacity: 0;
+  }
