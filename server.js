@@ -27,17 +27,43 @@ function loadInternshipsData() {
     }
 }
 
-// Function to refresh data by scraping
-async function refreshData() {
+
+// Add this new function to handle the new file operations
+async function refreshAndUpdateData() {
     try {
-        internshipData = await scrapeInternshala(100, 1); // Scraping the data, can adjust parameters
-        // Save the new data to internships.json
-        fs.writeFileSync(path.join(__dirname, 'internships.json'), JSON.stringify(internshipData, null, 2));
-        console.log('Data refreshed and saved to internships.json');
+        // Scrape new data
+        internshipData = await scrapeInternshala(100, 1);
+        
+        // Save to internshipsNew.json first
+        fs.writeFileSync(path.join(__dirname, 'internshipsNew.json'), JSON.stringify(internshipData, null, 2));
+        
+        // Copy internshipsNew.json to internships.json
+        fs.copyFileSync(
+            path.join(__dirname, 'internshipsNew.json'),
+            path.join(__dirname, 'internships.json')
+        );
+        
+        return internshipData;
     } catch (error) {
-        console.error('Error refreshing data:', error);
+        throw new Error('Error in refresh and update: ' + error.message);
     }
 }
+
+// Add this new endpoint
+app.get('/api/refresh-new', async (req, res) => {
+    try {
+        const updatedData = await refreshAndUpdateData();
+        res.json({ 
+            message: 'Data refreshed and updated successfully', 
+            count: updatedData.length 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: 'Error refreshing data: ' + error.message 
+        });
+    }
+});
+
 
 // Initial data load from internships.json
 loadInternshipsData();
