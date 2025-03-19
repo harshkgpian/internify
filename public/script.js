@@ -154,10 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners
-    keywordInput.addEventListener('input', () => {
-        const keyword = keywordInput.value.trim();
-        fetchDataByKeyword(keyword);
+    keywordInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            const keyword = keywordInput.value.trim();
+            fetchDataByKeyword(keyword);
+        }
     });
+    
 
     // Function to refresh data
     async function refreshData() {
