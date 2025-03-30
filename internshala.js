@@ -28,15 +28,41 @@ async function loadExistingData(filename) {
 
 async function saveToJson(internships, filename) {
   try {
-    let existingData = await loadExistingData(filename);
-    const urlSet = new Set(existingData.map(item => item.detailsUrl));
+    // Filter out expired internships by comparing apply by date with current date
+    const currentDate = new Date();
     
-    const newInternships = internships.filter(internship => !urlSet.has(internship.detailsUrl));
-    existingData = [...existingData, ...newInternships];
+    const validInternships = internships.filter(internship => {
+      if (!internship.applyBy || internship.applyBy === 'N/A') return true; // Keep if no date available
+      
+      // Parse the apply by date (format: "DD MMM' YY")
+      const dateMatch = internship.applyBy.match(/(\d+)\s+(\w+)'\s*(\d+)/);
+      if (!dateMatch) return true; // Keep if can't parse date
+      
+      const day = parseInt(dateMatch[1]);
+      const month = dateMatch[2];
+      const year = parseInt(dateMatch[3]);
+      
+      // Convert month abbreviation to month number (0-11)
+      const monthMap = {
+        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+      };
+      
+      const monthNum = monthMap[month];
+      if (monthNum === undefined) return true; // Keep if invalid month
+      
+      // Assume 2-digit year format (20XX)
+      const fullYear = 2000 + year;
+      const applyByDate = new Date(fullYear, monthNum, day);
+      
+      // Keep only if apply by date is in the future
+      return applyByDate >= currentDate;
+    });
     
-    await fs.writeFile(filename, JSON.stringify(existingData, null, 2));
-    console.log(`Successfully saved ${newInternships.length} new internships to ${filename}`);
-    return existingData;
+    // Overwrite the old data instead of appending
+    await fs.writeFile(filename, JSON.stringify(validInternships, null, 2));
+    console.log(`Successfully saved ${validInternships.length} active internships to ${filename}`);
+    return validInternships;
   } catch (error) {
     console.error('Error saving data:', error);
     throw error;
@@ -63,28 +89,25 @@ async function scrapeInternshipDetails(url) {
       const skill = $(element).text().trim();
       if (skill) skills.add(skill);
     });
-
-    // Additional details extraction
-    const perks = [];
-    $('.perks_container .round_tabs').each((_, element) => {
-      const perk = $(element).text().trim();
-      if (perk) perks.push(perk);
+    
+    // Extract apply by date from the details page
+    let applyByDate = 'N/A';
+    $('.other_detail_item').each((_, element) => {
+      const $element = $(element);
+      const headingText = $element.find('.item_heading span').text().trim();
+      if (headingText === 'APPLY BY') {
+        applyByDate = $element.find('.item_body').text().trim();
+      }
     });
-
-    const requirements = $('.requirements-container')
-      .text()
-      .replace(/\s+/g, ' ')
-      .trim() || 'N/A';
 
     return {
       description,
       skills: Array.from(skills),
-      perks,
-      requirements
+      applyByDate
     };
   } catch (error) {
     console.error(`Error scraping details for ${url}: ${error.message}`);
-    return { description: 'N/A', skills: [], perks: [], requirements: 'N/A' };
+    return { description: 'N/A', skills: []};
   }
 }
 
@@ -135,6 +158,8 @@ async function scrapeInternshalaPage(url) {
           return;
         }
 
+        // We'll extract the apply by date from the details page instead
+
         internshipsBasic.push({
           internshipId: $element.attr('internshipid') || 'N/A',
           jobTitle,
@@ -142,6 +167,7 @@ async function scrapeInternshalaPage(url) {
           location: $element.find('.locations a').map((_, el) => $(el).text().trim()).get().join(', ') || 'N/A',
           duration: $element.find('.row-1-item:nth-child(2) span').text().trim() || 'N/A',
           stipend: $element.find('.stipend').text().trim() || 'N/A',
+          // We'll get the apply by date from the details page
           postedTime: $element.find('.status-inactive span, .status-success span').text().trim() || 'N/A',
           activelyHiring: $element.find('.actively-hiring-badge').length > 0 ? 'Yes' : 'No',
           detailsUrl: fullUrl
@@ -157,7 +183,11 @@ async function scrapeInternshalaPage(url) {
       await delay(index * 200);
       console.log(`Fetching details for: ${internship.jobTitle}`);
       const details = await scrapeInternshipDetails(internship.detailsUrl);
-      return { ...internship, ...details };
+      return { 
+        ...internship, 
+        ...details,
+        applyBy: details.applyByDate // Make sure we use the correct field name in the final object
+      };
     });
 
     return await Promise.all(detailPromises);
@@ -173,6 +203,8 @@ async function scrapeInternshala(pageCount = 1, maxConcurrentPages = 2) {
   const filename = `internships.json`;
 
   try {
+    let allValidInternships = [];
+    
     for (let i = 0; i < pageCount; i += maxConcurrentPages) {
       const pagesToProcess = Math.min(maxConcurrentPages, pageCount - i);
       const pagePromises = [];
@@ -191,20 +223,22 @@ async function scrapeInternshala(pageCount = 1, maxConcurrentPages = 2) {
         internship.jobTitle !== 'N/A' && 
         internship.description !== 'N/A'
       );
-
-      // Save results after each successful page batch
-      await saveToJson(validPageResults, filename);
+      
+      // Collect all results instead of saving after each batch
+      allValidInternships = [...allValidInternships, ...validPageResults];
       console.log(`Processed ${i + pagesToProcess}/${pageCount} pages`);
     }
-
-    const finalData = await loadExistingData(filename);
-    return finalData;
+    
+    // Save all results at once, overwriting any existing data
+    await saveToJson(allValidInternships, filename);
+    return allValidInternships;
 
   } catch (error) {
     console.error('An error occurred during scraping:', error);
     throw error;
   }
 }
+
 async function scrapeInternshalaKeyword(keyword) {
   console.log('Starting enhanced Internshala scraper for keyword...', keyword);
   const filename = `internships.json`;
@@ -216,11 +250,10 @@ async function scrapeInternshalaKeyword(keyword) {
     // Scrape the page based on the keyword
     const internships = await scrapeInternshalaPage(url);
     
-    // Save results to the JSON file after fetching the internships
-    // await saveToJson(internships, filename);
+    // Save results directly, overwriting any existing data and filtering expired listings
+    await saveToJson(internships, filename);
 
     console.log(`Finished scraping for keyword: ${keyword}`);
-
     return internships;
 
   } catch (error) {
@@ -229,7 +262,4 @@ async function scrapeInternshalaKeyword(keyword) {
   }
 }
 
-
-module.exports = { scrapeInternshala,
-  scrapeInternshalaKeyword
- }
+module.exports = { scrapeInternshala, scrapeInternshalaKeyword };

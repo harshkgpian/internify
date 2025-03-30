@@ -3,18 +3,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshBtn = document.getElementById('refreshBtn');
     const searchInput = document.getElementById('searchInput');
     const skillsInput = document.getElementById('skillsInput');
-    const keywordInput = document.getElementById('keywordInput');
     const timeFilter = document.getElementById('timeFilter');
     const locationFilter = document.getElementById('locationFilter');
     const stipendSort = document.getElementById('stipendSort');
     const stipendRange = document.getElementById('stipendRange');
     let allInternships = [];
 
+    // Direct data source URL
+    const dataSourceUrl = 'https://harshkgpian.github.io/internships.json';
+    
+    // Function to fetch data directly from source
+    async function fetchDataFromSource() {
+        try {
+            tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+            const response = await fetch(dataSourceUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            allInternships = await response.json();
+            filterAndSortData();
+        } catch (error) {
+            tableBody.innerHTML = '<tr><td colspan="8" class="loading">Error loading data</td></tr>';
+            console.error('Error fetching data:', error);
+        }
+    }
+
     // Function to populate table
     function populateTable(data) {
         tableBody.innerHTML = '';
         if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="loading">No internships found for this keyword</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="8" class="loading">No internships found for this filter</td></tr>';
         } else {
             data.forEach(internship => {
                 const row = document.createElement('tr');
@@ -25,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${internship.duration}</td>
                     <td>${internship.stipend}</td>
                     <td>${internship.postedTime}</td>
-                    <td>${internship.skills.join(', ') || 'N/A'}</td>
+                    <td>${internship.skills ? internship.skills.join(', ') : 'N/A'}</td>
                     <td><a href="${internship.detailsUrl}" target="_blank" class="apply-btn">Apply</a></td>
                 `;
                 tableBody.appendChild(row);
@@ -71,13 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
-        // Search by skills
+        // Search by skills (and description if available)
         const skillsTerm = skillsInput.value.toLowerCase();
         if (skillsTerm) {
             filteredData = filteredData.filter(internship =>
-                internship.skills.some(skill => 
+                // Check if skills array contains the term
+                (internship.skills && internship.skills.some(skill => 
                     skill.toLowerCase().includes(skillsTerm)
-                )
+                )) || 
+                // Also check job description if it exists
+                (internship.description && 
+                internship.description.toLowerCase().includes(skillsTerm)) ||
+                // Check job title as fallback for relevant keywords
+                internship.jobTitle.toLowerCase().includes(skillsTerm)
             );
         }
 
@@ -117,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Stipend range filter
         const stipendRangeValue = stipendRange.value;
         if (stipendRangeValue !== 'all') {
             filteredData = filteredData.filter(internship => {
@@ -137,58 +162,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         populateTable(filteredData);
     }
-    async function fetchData() {
-        try {
-            tableBody.innerHTML = '<tr><td colspan="7" class="loading">Loading...</td></tr>';
-            const response = await fetch('/api/internships');
-            allInternships = await response.json();
-            filterAndSortData();
-        } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="loading">Error loading data</td></tr>';
-            console.error('Error fetching data:', error);
-        }
+
+    // Function to search internships by keyword using browser-based scraping
+    // Note: Browser-based scraping has limitations due to CORS policies
+    async function searchByKeyword(keyword) {
+        // This is where you would implement a browser-based solution
+        // However, direct scraping from the browser may be blocked by CORS
+        
+        tableBody.innerHTML = '<tr><td colspan="8" class="loading">Note: Direct keyword scraping requires a server or proxy due to CORS limitations</td></tr>';
+        
+        // For now, we'll just filter existing data instead
+        const keywordLower = keyword.toLowerCase();
+        const results = allInternships.filter(internship => 
+            internship.jobTitle.toLowerCase().includes(keywordLower) ||
+            internship.companyName.toLowerCase().includes(keywordLower) ||
+            (internship.skills && internship.skills.some(skill => skill.toLowerCase().includes(keywordLower))) ||
+            (internship.description && internship.description.toLowerCase().includes(keywordLower))
+        );
+        
+        populateTable(results);
     }
 
-
-    // Function to fetch data based on keyword
-    async function fetchDataByKeyword(keyword) {
-        try {
-            if (!keyword) {
-                // If no keyword is entered, show default data
-                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
-                const response = await fetch('/api/internships');
-                allInternships = await response.json();
-                filterAndSortData();
-            } else {
-                // If keyword is provided, search for internships by keyword
-                tableBody.innerHTML = '<tr><td colspan="8" class="loading">Searching for internships...</td></tr>';
-                const response = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}`);
-                const data = await response.json();
-                populateTable(data);
-            }
-        } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="8" class="loading">Error loading data</td></tr>';
-            console.error('Error fetching data:', error);
-        }
-    }
-
-    // Event listeners
-
-    
 
     // Function to refresh data
     async function refreshData() {
         try {
             refreshBtn.disabled = true;
             refreshBtn.textContent = 'Refreshing...';
-            const response = await fetch('/api/internships');
-            const result = await response.json();
-            
-            if (response.ok) {
-                await fetchData();
-            } else {
-                throw new Error(result.error);
-            }
+            await fetchDataFromSource();
         } catch (error) {
             alert('Error refreshing data: ' + error.message);
         } finally {
@@ -196,15 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
             refreshBtn.textContent = 'Refresh Data';
         }
     }
-
-    // Initial data load
-    fetchDataByKeyword('');
-    keywordInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            const keyword = keywordInput.value.trim();
-            fetchDataByKeyword(keyword);
-        }
-    });
 
     // Debounce function
     function debounce(func, wait) {
@@ -229,4 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stipendSort.addEventListener('change', filterAndSortData);
     stipendRange.addEventListener('change', filterAndSortData);
 
+    // Initial data load
+    fetchDataFromSource();
 });
